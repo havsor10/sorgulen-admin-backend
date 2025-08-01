@@ -1,0 +1,26 @@
+[
+  {
+    "tjeneste": "Brøyting",
+    "navn": "Ola Nordmann",
+    "dato": "2025-07-21",
+    "tidspunkt": "08:00",
+    "status": "aktive",
+    "tilleggsinfo": "Brøyting av oppkjørsel"
+  },
+  {
+    "tjeneste": "Plenklipping",
+    "navn": "Kari Hansen",
+    "dato": "2025-07-18",
+    "tidspunkt": "10:30",
+    "status": "ferdige",
+    "tilleggsinfo": "Stor plen i hagen"
+  },
+  {
+    "tjeneste": "Diverse arbeid",
+    "navn": "Per Olsen",
+    "dato": "2025-07-22",
+    "tidspunkt": "14:00",
+    "status": "kansellerte",
+    "tilleggsinfo": "Rydding og bæring"
+  }
+]
