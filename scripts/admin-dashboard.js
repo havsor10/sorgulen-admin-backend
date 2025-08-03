@@ -1,69 +1,71 @@
 document.addEventListener("DOMContentLoaded", () => {
-  fetch("http://localhost:3001/bestillinger")
+  const aktiveTab = document.querySelector("[data-target='aktive']");
+  const fullfortTab = document.querySelector("[data-target='fullforte']");
+  const kansellerteTab = document.querySelector("[data-target='kansellerte']");
+  const søkInput = document.getElementById("search");
+
+  const aktiveSection = document.getElementById("aktive");
+  const fullfortSection = document.getElementById("fullforte");
+  const kansellertSection = document.getElementById("kansellerte");
+
+  let bestillinger = [];
+
+  // Hent bestillinger fra Render-backend
+  fetch("https://sorgulen-admin-backend.onrender.com/bestillinger")
     .then((res) => res.json())
-    .then((data) => renderOrders(data));
-
-  document.getElementById("search").addEventListener("input", function () {
-    const query = this.value.toLowerCase();
-    document.querySelectorAll(".order-card").forEach((card) => {
-      card.style.display = card.innerText.toLowerCase().includes(query) ? "block" : "none";
+    .then((data) => {
+      bestillinger = data;
+      visBestillinger("aktive");
+    })
+    .catch((err) => {
+      console.error("Feil ved henting av bestillinger:", err);
+      aktiveSection.innerHTML = "<p style='color: red;'>Kunne ikke hente bestillinger. Sjekk backend.</p>";
     });
-  });
 
-  document.querySelectorAll(".tab").forEach((tabBtn) => {
-    tabBtn.addEventListener("click", function () {
-      document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-      document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
-      this.classList.add("active");
-      document.getElementById(this.dataset.target).classList.add("active");
+  // Vis filtrerte bestillinger basert på status
+  function visBestillinger(status) {
+    const filtrert = bestillinger.filter((b) => {
+      if (status === "aktive") return b.status === "venter på godkjenning" || b.status === "utføres";
+      if (status === "fullforte") return b.status === "fullført";
+      if (status === "kansellerte") return b.status === "kansellert";
+      return false;
     });
+
+    const html = filtrert
+      .map((b, i) => {
+        return `
+          <div class="ordre-kort">
+            <div class="prioritet">Pr ${i + 1}</div>
+            <h3>${b.tjeneste} – ${b.navn}</h3>
+            <p><strong>Adresse:</strong> ${b.adresse}</p>
+            <p><strong>Tlf:</strong> ${b.telefon}</p>
+            <p><strong>E-post:</strong> ${b.epost}</p>
+            <p><strong>Dato:</strong> ${b.dato}</p>
+            <p><strong>Status:</strong> ${b.status}</p>
+          </div>
+        `;
+      })
+      .join("");
+
+    aktiveSection.innerHTML = status === "aktive" ? html : "";
+    fullfortSection.innerHTML = status === "fullforte" ? html : "";
+    kansellertSection.innerHTML = status === "kansellerte" ? html : "";
+  }
+
+  // Bytt faner
+  aktiveTab.addEventListener("click", () => visBestillinger("aktive"));
+  fullfortTab.addEventListener("click", () => visBestillinger("fullforte"));
+  kansellerteTab.addEventListener("click", () => visBestillinger("kansellerte"));
+
+  // Søkefunksjon
+  søkInput.addEventListener("input", () => {
+    const søkeord = søkInput.value.toLowerCase();
+    const filtrert = bestillinger.filter((b) =>
+      Object.values(b).some((val) => val.toLowerCase().includes(søkeord))
+    );
+    bestillinger = filtrert;
+    visBestillinger("aktive");
   });
 });
-
-function renderOrders(data) {
-  const active = document.getElementById("aktive");
-  const done = document.getElementById("fullforte");
-  const cancelled = document.getElementById("kansellerte");
-
-  data.sort((a, b) => new Date(a.dato + " " + a.tid) - new Date(b.dato + " " + b.tid));
-
-  data.forEach((order, i) => {
-    const card = document.createElement("div");
-    card.className = "order-card";
-    card.innerHTML = 
-      <div class="status-label">Pr ${i + 1}</div>
-      <h3>${order.tjeneste}</h3>
-      <p><strong>Navn:</strong> ${order.navn}</p>
-      <p><strong>Adresse:</strong> ${order.adresse}</p>
-      <p><strong>Dato:</strong> ${order.dato}</p>
-      <p><strong>Klokkeslett:</strong> ${order.tid}</p>
-      <p><strong>Status:</strong> ${order.status}</p>
-      <div class="card-actions">
-        <button onclick="handleAction('godkjenn', ${order.id})">✅</button>
-        <button onclick="handleAction('fullfor', ${order.id})">✔️</button>
-        <button onclick="handleAction('slett', ${order.id})">❌</button>
-      </div>
-    ;
-    if (order.status === "fullført") done.appendChild(card);
-    else if (order.status === "kansellert") cancelled.appendChild(card);
-    else active.appendChild(card);
-  });
-}
-
-function handleAction(action, id) {
-  let status = "";
-  if (action === "godkjenn") status = "aktiv";
-  else if (action === "fullfor") status = "fullført";
-  else if (action === "slett") status = "kansellert";
-
-  fetch(http://localhost:3001/bestillinger/${id}, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status }),
-  })
-    .then((res) => res.json())
-    .then(() => location.reload())
-    .catch((err) => console.error("Feil:", err));
-}
 
 
